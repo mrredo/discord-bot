@@ -4,6 +4,7 @@ import (
 	"context"
 	"discord-bot/commands"
 	"discord-bot/commands/games"
+	"github.com/joho/godotenv"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,11 +17,15 @@ import (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	log.SetLevel(log.LevelInfo)
 	log.Info("starting example...")
 	log.Info("disgo version: ", disgo.Version)
 
-	client, err := disgo.New("MTExMTcyMjIwMjUwMTQ4MDQ1OA.GQFKsC.Y8km1nyQrNGK7jjIk1qQ1c40TBOogbnDcFyGJw",
+	client, err := disgo.New(os.Getenv("TOKEN"),
 		bot.WithDefaultGateway(),
 		bot.WithEventListenerFunc(commandListener),
 	)
