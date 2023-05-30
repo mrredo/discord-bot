@@ -95,8 +95,13 @@ func NimGame(e *events.ApplicationCommandInteractionCreate) {
 
 						disabledButtons = append(disabledButtons, v.(discord.ButtonComponent).AsDisabled())
 					}
-					isPlayer1Turn = !isPlayer1Turn
-					e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.NewMessageUpdateBuilder().ClearContainerComponents().AddActionRow(disabledButtons...).SetEmbeds(newNimEmbed(stones, user1.ID, user2.ID, isPlayer1Turn, !isPlayer1Turn)).Build())
+					if user1.ID == bEvent.User().ID {
+						isPlayer1Turn = true
+					} else if user2.ID == bEvent.User().ID {
+						isPlayer1Turn = false
+					}
+
+					e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.NewMessageUpdateBuilder().ClearContainerComponents().AddActionRow(disabledButtons...).SetEmbeds(newNimEmbed(stones, user1.ID, user2.ID, isPlayer1Turn, isPlayer1Turn)).Build())
 					return
 				}
 				if bEvent.User().ID != user1.ID && bEvent.User().ID != user2.ID {
