@@ -48,7 +48,7 @@ var NimButtons = []discord.InteractiveComponent{
 	discord.NewPrimaryButton("-1", "1-nim"),
 	discord.NewPrimaryButton("-2", "2-nim"),
 	discord.NewPrimaryButton("-3", "3-nim"),
-	discord.NewDangerButton("resign", "resign-nim"),
+	//discord.NewDangerButton("resign", "resign-nim"),
 }
 
 func NimGame(e *events.ApplicationCommandInteractionCreate) {
@@ -60,14 +60,22 @@ func NimGame(e *events.ApplicationCommandInteractionCreate) {
 	}
 	if user1.ID == user2.ID {
 		e.CreateMessage(discord.NewMessageCreateBuilder().SetContent("You can't duel yourself").SetEphemeral(true).Build())
+		return
 	} else if user2.Bot {
 		e.CreateMessage(discord.NewMessageCreateBuilder().SetContent("I don't think a bot will play").SetEphemeral(true).Build())
+		return
 	}
 	var stones = functions.RandomInRange(20, 40)
 	if err := e.CreateMessage(discord.NewMessageCreateBuilder().SetEmbeds(newNimEmbed(stones, user1.ID, user2.ID, true)).AddActionRow(NimButtons...).Build()); err != nil {
 		log.Println(err)
 	}
 	isPlayer1Turn := true
+	for i, v := range NimButtons {
+		btn := v.(discord.ButtonComponent)
+		btn.CustomID = btn.CustomID + "-" + e.ID().String()
+		NimButtons[i] = btn
+	}
+
 	go func() {
 
 		ch, cls := bot.NewEventCollector(e.Client(), func(e1 *events.ComponentInteractionCreate) bool {
@@ -88,7 +96,7 @@ func NimGame(e *events.ApplicationCommandInteractionCreate) {
 				return
 
 			case bEvent := <-ch:
-				if bEvent.ButtonInteractionData().CustomID() == "resign-nim" {
+				if strings.Contains(bEvent.ButtonInteractionData().CustomID(), "resign-nim") {
 					bEvent.CreateMessage(discord.NewMessageCreateBuilder().SetContent("Successfully resigned.").SetEphemeral(true).Build())
 					disabledButtons := []discord.InteractiveComponent{}
 					for _, v := range NimButtons {
@@ -101,7 +109,10 @@ func NimGame(e *events.ApplicationCommandInteractionCreate) {
 						isPlayer1Turn = false
 					}
 
-					e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.NewMessageUpdateBuilder().ClearContainerComponents().AddActionRow(disabledButtons...).SetEmbeds(newNimEmbed(stones, user1.ID, user2.ID, isPlayer1Turn, isPlayer1Turn)).Build())
+					_, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.NewMessageUpdateBuilder().ClearContainerComponents().AddActionRow(disabledButtons...).SetEmbeds(newNimEmbed(stones, user1.ID, user2.ID, isPlayer1Turn, isPlayer1Turn)).Build())
+					if err != nil {
+						panic(err)
+					}
 					return
 				}
 				if bEvent.User().ID != user1.ID && bEvent.User().ID != user2.ID {
@@ -162,7 +173,7 @@ var NimSlashCommand = discord.SlashCommandCreate{
 
 /*
 
-Later add ai so user can battle with the ai
+Later add AI so user can battle with the ai
 
 
 */

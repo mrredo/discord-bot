@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"discord-bot/commands"
+	"discord-bot/commands/api"
 	"discord-bot/commands/games"
 	"github.com/joho/godotenv"
 	"os"
@@ -53,14 +54,9 @@ func main() {
 func commandListener(event *events.ApplicationCommandInteractionCreate) {
 	data := event.SlashCommandInteractionData()
 	switch data.CommandName() {
-	case "bozo":
-		err := event.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent(data.String("who")).
-			Build(),
-		)
-		if err != nil {
-			event.Client().Logger().Error("error on sending response: ", err)
-		}
+	case "eval_go":
+		api.GoEval(event)
+
 	case "nim":
 		games.NimGame(event)
 	default:
