@@ -30,7 +30,7 @@ func main() {
 		bot.WithDefaultGateway(),
 		bot.WithEventListenerFunc(registerCommands),
 		bot.WithEventListenerFunc(commandListener),
-		bot.WithEventListenerFunc(api.HandleGoEvalInput),
+		bot.WithEventListenerFunc(ModalSubmit),
 	)
 	if err != nil {
 		log.Fatal("error while building disgo instance: ", err)
@@ -57,6 +57,13 @@ func registerCommands(event *events.MessageCreate) {
 		if err := commands.RegisterCommands(event.Client()); err != nil {
 			log.Fatal("error while registering commands: ", err)
 		}
+	}
+}
+func ModalSubmit(event *events.ModalSubmitInteractionCreate) {
+	switch event.ModalSubmitInteraction.Data.CustomID {
+	case "1-goeval":
+		api.HandleGoEvalInput(event)
+
 	}
 }
 func commandListener(event *events.ApplicationCommandInteractionCreate) {
